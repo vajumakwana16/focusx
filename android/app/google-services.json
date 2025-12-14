@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "206251759380",
+    "project_id": "focusx-ef63d",
+    "storage_bucket": "focusx-ef63d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:206251759380:android:680bbd119258173c93d401",
+        "android_client_info": {
+          "package_name": "com.vm.focusx"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "206251759380-fv1nsuc51c3plqugejjt6g3k91rqisvj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.vm.focusx",
+            "certificate_hash": "adf122ef78248ad6f3a869e9746dd58e844ed490"
+          }
+        },
+        {
+          "client_id": "206251759380-p149825qr22fqm3fnocdn8voaqbnse4c.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAh-XzrCyMeP5w2RNu-7guOgVQXqk_pmcs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "206251759380-p149825qr22fqm3fnocdn8voaqbnse4c.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "206251759380-2luo2ursnm7qps374274pnhhuqqq1tna.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.vm.focusx"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
