@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:focusx/utils/webservice.dart';
+import 'package:focusx/utils/webservice.dart';
+import 'package:focusx/utils/webservice.dart';
 import '../../../models/habit.dart';
 import '../../../services/firestore_service.dart';
+import '../../../services/haptic_service.dart';
 import '../../../services/notification_service.dart';
 import 'habit_form.dart';
 
@@ -14,7 +18,6 @@ class AddEditHabitPage extends StatefulWidget {
 
 class _AddEditHabitPageState extends State<AddEditHabitPage> {
   final _formKey = GlobalKey<FormState>();
-  final _service = FirestoreService();
 
   late TextEditingController title;
   late TextEditingController description;
@@ -45,7 +48,7 @@ class _AddEditHabitPageState extends State<AddEditHabitPage> {
 
   Future<void> _saveHabit() async {
     if (!_formKey.currentState!.validate()) return;
-
+    HapticService.tap();
     final notificationId =
     reminderEnabled ? DateTime.now().millisecondsSinceEpoch ~/ 1000 : 0;
 
@@ -65,8 +68,8 @@ class _AddEditHabitPageState extends State<AddEditHabitPage> {
     );
 
     widget.habit == null
-        ? await _service.addHabit(habit)
-        : await _service.updateHabit(habit);
+        ? await Webservice.firebaseService.addHabit(habit)
+        : await Webservice.firebaseService.updateHabit(habit);
 
     if (reminderEnabled && reminderTime != null) {
       final now = DateTime.now();
@@ -102,7 +105,8 @@ class _AddEditHabitPageState extends State<AddEditHabitPage> {
             IconButton(
               icon: const Icon(Icons.delete_outline),
               onPressed: () async {
-                await _service.deleteHabit(widget.habit!.id!);
+                HapticService.heavy();
+                await Webservice.firebaseService.deleteHabit(widget.habit!.id!);
                 Navigator.pop(context);
               },
             ),

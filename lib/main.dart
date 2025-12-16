@@ -1,22 +1,28 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:focusx/provider/dashboard_controller.dart';
+import 'package:focusx/provider/haptic_provider.dart';
 import 'package:focusx/services/notification_service.dart';
-
 import 'package:focusx/ui/screens/dashboard.dart';
 import 'package:focusx/ui/screens/google_sign_in_page.dart';
 import 'package:focusx/ui/theme/app_theme.dart';
-import 'package:focusx/ui/theme/theme_provider.dart';
+import 'package:focusx/provider/theme_provider.dart';
+import 'package:focusx/utils/webservice.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   await NotificationService.init();
+  Webservice.pref = await SharedPreferences.getInstance();
   runApp(
     MultiProvider(
-      providers:[
+      providers: [
         ChangeNotifierProvider<ThemeProvider>(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider<HapticProvider>(create: (_) => HapticProvider()),
+        ChangeNotifierProvider<DashboardProvider>(create: (_) => DashboardProvider()),
       ],
       child: const MyApp(),
     ),
@@ -55,7 +61,7 @@ class AuthGate extends StatelessWidget {
         }
 
         if (snapshot.hasData) {
-          return const MainNavigation();
+          return const Dashboard();
         }
 
         return const GoogleSignInPage();

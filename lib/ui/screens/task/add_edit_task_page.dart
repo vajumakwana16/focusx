@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:focusx/utils/webservice.dart';
+import 'package:focusx/utils/webservice.dart';
+import 'package:focusx/utils/webservice.dart';
 import '../../../models/task.dart';
 import '../../../services/firestore_service.dart';
+import '../../../services/haptic_service.dart';
 import '../../../services/notification_service.dart';
 import 'task_form.dart';
 
@@ -14,7 +18,6 @@ class AddEditTaskPage extends StatefulWidget {
 
 class _AddEditTaskPageState extends State<AddEditTaskPage> {
   final _formKey = GlobalKey<FormState>();
-  final _service = FirestoreService();
 
   late TextEditingController title;
   late TextEditingController description;
@@ -71,12 +74,13 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
       timerDuration: 0,
       timeSpent: 0,
       remainingTime: 0,
+      completedAt: null
     );
 
     if (widget.task == null) {
-      await _service.addTask(task);
+      await Webservice.firebaseService.addTask(task);
     } else {
-      await _service.updateTask(task);
+      await Webservice.firebaseService.updateTask(task);
     }
 
     if (reminderEnabled && selectedDate != null && selectedTime != null) {
@@ -110,7 +114,8 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
             IconButton(
               icon: const Icon(Icons.delete_outline),
               onPressed: () async {
-                await _service.deleteTask(widget.task!.id!);
+                HapticService.heavy();
+                await Webservice.firebaseService.deleteTask(widget.task!.id!);
                 if (mounted) Navigator.pop(context);
               },
             ),

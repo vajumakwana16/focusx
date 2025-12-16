@@ -13,6 +13,7 @@ class Task {
   int timerDuration;
   int timeSpent;
   int remainingTime;
+  String? completedAt;
 
   Task({
     this.id,
@@ -29,6 +30,7 @@ class Task {
     required this.timerDuration,
     required this.timeSpent,
     required this.remainingTime,
+    required this.completedAt,
   });
 
   Map<String, dynamic> toMap() => {
@@ -46,6 +48,7 @@ class Task {
     'timeSpent': timeSpent,
     'remainingTime': remainingTime,
     'createdAt': DateTime.now(),
+    'completedAt': completedAt,
   };
 
   factory Task.fromMap(Map<String, dynamic> map, String docId) {
@@ -64,6 +67,7 @@ class Task {
       timerDuration: map['timerDuration'],
       timeSpent: map['timeSpent'],
       remainingTime: map['remainingTime'],
+      completedAt: map['completedAt'],
     );
   }
 
@@ -82,6 +86,7 @@ class Task {
     int? timerDuration,
     int? timeSpent,
     int? remainingTime,
+    String? completedAt,
   }) {
     return Task(
       id: id ?? this.id,
@@ -98,7 +103,7 @@ class Task {
       timerDuration: timerDuration ?? this.timerDuration,
       timeSpent: timeSpent ?? this.timeSpent,
       remainingTime: remainingTime ?? this.remainingTime,
+      completedAt: completedAt ?? this.completedAt,
     );
   }
-
 }

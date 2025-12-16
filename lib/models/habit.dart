@@ -47,4 +47,57 @@ class Habit {
       color: map['color'],
     );
   }
+
+  bool isScheduledForToday(String todayKey) {
+    final today = DateTime.parse(todayKey);
+    final start = DateTime.parse(startDate);
+
+    // Habit not started yet
+    if (today.isBefore(start)) return false;
+
+    switch (frequency) {
+      case 'daily':
+        return true;
+
+      case 'weekly':
+      // Same weekday as start date
+        return today.weekday == start.weekday;
+
+      // case 'custom':
+      // // Example: ['mon', 'wed', 'fri']
+      //   if (customDays == null || customDays!.isEmpty) return false;
+      //
+      //   final todayName = _weekdayName(today.weekday);
+      //   return customDays!.contains(todayName);
+
+      default:
+        return false;
+    }
+  }
+
+  Habit copyWith({
+    String? id,
+    String? title,
+    String? description,
+    String? frequency,
+    String? reminderTime,
+    String? startDate,
+    List<String>? completionDates,
+    int? notificationId,
+    int? color,
+  }) {
+    return Habit(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      frequency: frequency ?? this.frequency,
+      reminderTime: reminderTime ?? this.reminderTime,
+      startDate: startDate ?? this.startDate,
+      completionDates:
+      completionDates ?? List<String>.from(this.completionDates),
+      notificationId: notificationId ?? this.notificationId,
+      color: color ?? this.color,
+    );
+  }
+
 }

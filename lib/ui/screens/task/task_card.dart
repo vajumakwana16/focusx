@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:focusx/utils/extensions.dart';
 import '../../../models/task.dart';
 import '../../../services/firestore_service.dart';
+import '../../../services/haptic_service.dart';
+import '../../../utils/webservice.dart';
 import 'add_edit_task_page.dart';
 
 class TaskCard extends StatelessWidget {
@@ -11,13 +13,12 @@ class TaskCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final service = FirestoreService();
     final color = _priorityColor(theme, task.priority);
 
     return GestureDetector(
       onTap: ()=>context.next(AddEditTaskPage(task: task)),
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: theme.colorScheme.surface,
@@ -35,9 +36,14 @@ class TaskCard extends StatelessWidget {
             // ✅ COMPLETE TOGGLE
             GestureDetector(
               onTap: () async {
-                await service.updateTask(
-                  task!.copyWith(isCompleted: !task.isCompleted),
+                HapticService.light();
+                await Webservice.firebaseService.updateTask(
+                  task.copyWith(
+                    isCompleted: !task.isCompleted,
+                    completedAt: DateTime.now().toIso8601String(),
+                  ),
                 );
+
               },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
@@ -65,12 +71,8 @@ class TaskCard extends StatelessWidget {
             Expanded(
               child: GestureDetector(
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => AddEditTaskPage(task: task),
-                    ),
-                  );
+                  HapticService.light();
+                  context.next(AddEditTaskPage(task: task));
                 },
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -139,6 +141,8 @@ class TaskCard extends StatelessWidget {
                 const SizedBox(height: 10),
                 GestureDetector(
                   onTap: () async {
+
+                    HapticService.heavy();
                     final confirm = await showDialog<bool>(
                       context: context,
                       builder: (_) => AlertDialog(
@@ -161,7 +165,7 @@ class TaskCard extends StatelessWidget {
                     );
 
                     if (confirm == true) {
-                      await service.deleteTask(task.id!);
+                      await Webservice.firebaseService.deleteTask(task.id!);
                     }
                   },
                   child: Icon(

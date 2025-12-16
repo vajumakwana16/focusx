@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:focusx/provider/dashboard_controller.dart';
+import 'package:provider/provider.dart';
 
 class ModernBottomBar extends StatelessWidget {
   final int index;
@@ -31,14 +33,14 @@ class ModernBottomBar extends StatelessWidget {
           _Item(context,Icons.checklist_rounded, "Tasks", 1),
           _Item(context,Icons.repeat_rounded, "Habit", 2),
           _Item(context,Icons.bar_chart, "Analytics", 3),
-          _Item(context,Icons.settings_rounded, "Settings", 4),
+          // _Item(context,Icons.settings_rounded, "Settings", 4),
         ],
       ),
     );
   }
 
   Widget _Item(BuildContext context, IconData icon, String label, int i) {
-    final selected = index == i;
+    final selected = context.watch<DashboardProvider>().index == i;
     final color = Theme.of(context).colorScheme.primary;
 
     return FittedBox(

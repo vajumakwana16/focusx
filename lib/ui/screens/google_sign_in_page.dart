@@ -67,16 +67,10 @@ class GoogleSignInPage extends StatelessWidget {
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton.icon(
-                  icon: Image.asset(
-                    'assets/google.png',
-                    height: 22,
-                  ),
+                  icon: Image.asset('assets/google.png', height: 22),
                   label: const Text(
                     'Continue with Google',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: theme.colorScheme.surface,
@@ -84,20 +78,14 @@ class GoogleSignInPage extends StatelessWidget {
                     elevation: 2,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
-                      side: BorderSide(
-                        color: theme.dividerColor,
-                      ),
+                      side: BorderSide(color: theme.dividerColor),
                     ),
                   ),
                   onPressed: () async {
-                    final user =
-                    await AuthService().signInWithGoogle();
+                    final user = await AuthService().signInWithGoogle();
 
                     if (user != null && context.mounted) {
-                      Navigator.pushReplacementNamed(
-                        context,
-                        '/home',
-                      );
+                      Navigator.pushReplacementNamed(context, '/');
                     }
                   },
                 ),
@@ -115,13 +103,9 @@ class GoogleSignInPage extends StatelessWidget {
                 },
                 child: const Text(
                   'Continue as Guest',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
                 ),
               ),
-
 
               const SizedBox(height: 20),
 

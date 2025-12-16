@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../services/haptic_service.dart';
+
 /// CONTEXT EXTENSIONS
 
 extension ContextExt on BuildContext {
@@ -23,8 +25,10 @@ extension ContextExt on BuildContext {
           .of(this)
           .textTheme;
 
-  void next(Widget page) =>
-      Navigator.push(this, MaterialPageRoute(builder: (_) => page));
+  void next(Widget page) {
+    HapticService.light();
+    Navigator.push(this, MaterialPageRoute(builder: (_) => page));
+  }
 
   void back() => Navigator.pop(this);
 

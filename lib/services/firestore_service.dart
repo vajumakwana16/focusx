@@ -18,18 +18,33 @@ class FirestoreService {
         .add(task.toMap());
   }
 
-  Stream<List<Task>> watchTasks() {
-    return _firestore
-        .collection('users')
-        .doc(uid)
-        .collection('tasks')
-        .orderBy('createdAt', descending: true)
-        .snapshots(includeMetadataChanges: true)
-        .map((snapshot) {
-      return snapshot.docs
-          .map((d) => Task.fromMap(d.data(), d.id))
-          .toList();
-    });
+  Stream<List<Task>> watchTasks({bool isToday = false}) {
+    if(isToday){
+      return _firestore
+          .collection('users')
+          .doc(uid)
+          .collection('tasks')
+          .orderBy('createdAt', descending: true)
+          .snapshots(includeMetadataChanges: true)
+          .map((snapshot) {
+        return snapshot.docs
+            .map((d) => Task.fromMap(d.data(), d.id))
+            .toList();
+      });
+    }else{
+      return _firestore
+          .collection('users')
+          .doc(uid)
+          .collection('tasks')
+          .where('createdAt',isEqualTo: DateTime.now().toIso8601String().substring(0,10))
+          .orderBy('createdAt', descending: true)
+          .snapshots(includeMetadataChanges: true)
+          .map((snapshot) {
+        return snapshot.docs
+            .map((d) => Task.fromMap(d.data(), d.id))
+            .toList();
+      });
+    }
   }
 
   Future<List<Task>> getTasks() async {
@@ -43,6 +58,42 @@ class FirestoreService {
         .map((d) => Task.fromMap(d.data(), d.id))
         .toList();
   }
+
+  /// TODAY TASKS
+  Future<List<Task>> getTodayTasks() async {
+    final todayKey = _dayKey(DateTime.now());
+
+    final snapshot = await _firestore
+        .collection('users')
+        .doc(uid)
+        .collection('tasks')
+        .get();
+
+    return snapshot.docs
+        .map((d) => Task.fromMap(d.data(), d.id))
+        .where((t) => t.dueDate.substring(0,10) == todayKey)
+        .toList()
+      ..sort((a, b) {
+        // if (a.isCompleted == b.isCompleted) return 0;
+        return a.isCompleted ? 1 : -1;
+      });
+  }
+
+  Future<List<Habit>> getTodayHabits() async {
+    final todayKey = _dayKey(DateTime.now());
+
+    final snapshot = await _firestore
+        .collection('users')
+        .doc(uid)
+        .collection('habits')
+        .get();
+
+    return snapshot.docs
+        .map((d) => Habit.fromMap(d.data(), d.id))
+        // .where((h) => h.isScheduledForToday(todayKey))
+        .toList();
+  }
+
 
   Future<void> updateTask(Task task) async {
     await _firestore
@@ -141,5 +192,167 @@ class FirestoreService {
       'completedTasks': completedTasks,
       'productivity': productivity,
     };
+  }
+
+  /// 🔹 TODAY'S TASK STATS
+  Future<Map<String, dynamic>> getTodayTaskStats() async {
+    final todayKey = _dayKey(DateTime.now());
+
+    final snapshot = await _firestore
+        .collection('users')
+        .doc(uid)
+        .collection('tasks')
+        .get();
+
+    int plannedToday = 0;
+    int completedToday = 0;
+
+    for (var doc in snapshot.docs) {
+      final data = doc.data();
+
+      // Planned today
+      print("${data['dueDate']}  - $todayKey ");
+      if (data['dueDate'].toString().substring(0,10) == todayKey) {
+        plannedToday++;
+
+        if (data['isCompleted'] == true) {
+          completedToday++;
+        }
+      }
+    }
+
+    final double ratio = plannedToday == 0
+        ? 0
+        : completedToday / plannedToday;
+
+    final int score = (ratio * 10).round();
+
+    String status;
+    if (score >= 9) {
+      status = '🔥 Deep Focus';
+    } else if (score >= 7) {
+      status = '💪 Focused';
+    } else if (score >= 5) {
+      status = '🙂 Average';
+    } else if (score >= 3) {
+      status = '😕 Low Focus';
+    } else {
+      status = '😴 Distracted';
+    }
+
+    return {
+      'plannedToday': plannedToday,
+      'completedToday': completedToday,
+      'score': score,
+      'status': status,
+    };
+  }
+
+
+  /// 🔹 WEEKLY TASK COMPLETION (LAST 7 DAYS)
+  Future<List<Map<String, dynamic>>> getWeeklyCompletedTasks() async {
+    final now = DateTime.now();
+    final List<Map<String, dynamic>> result = [];
+
+    // Build last 7 days (OLD → TODAY)
+    for (int i = 6; i >= 0; i--) {
+      final d = now.subtract(Duration(days: i));
+
+      result.add({
+        'dateKey': _dayKey(d),
+        'dayLabel': _dayLabel(d),
+        'count': 0,
+      });
+    }
+
+    final snapshot = await _firestore
+        .collection('users')
+        .doc(uid)
+        .collection('tasks')
+        .where('isCompleted', isEqualTo: true)
+        .get();
+
+    for (var doc in snapshot.docs) {
+      final completedAt = doc.data()['completedAt'];
+      if (completedAt == null) continue;
+
+      final date = DateTime.tryParse(completedAt)?.toLocal();
+      if (date == null) continue;
+
+      final key = _dayKey(date);
+
+      final index =
+      result.indexWhere((e) => e['dateKey'] == key);
+
+      if (index != -1) {
+        result[index]['count'] =
+            (result[index]['count'] as int) + 1;
+      }
+    }
+
+    return result;
+  }
+
+
+  String _dayKey(DateTime d) {
+    return '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+  }
+
+  String _dayLabel(DateTime d) {
+    const labels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+    return labels[d.weekday % 7];
+  }
+
+
+
+  /// 🔹 HABIT INSIGHTS
+  Future<Map<String, dynamic>> getHabitInsights() async {
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+
+    final snapshot = await _firestore
+        .collection('users')
+        .doc(uid)
+        .collection('habits')
+        .get();
+
+    int todayDone = 0;
+    int bestStreak = 0;
+
+    for (var doc in snapshot.docs) {
+      final dates =
+      List<String>.from(doc['completionDates'] ?? []);
+
+      if (dates.contains(today)) todayDone++;
+
+      dates.sort();
+      int streak = 0;
+      DateTime? prev;
+
+      for (var d in dates.reversed) {
+        final curr = DateTime.parse(d);
+        if (prev == null ||
+            prev.difference(curr).inDays == 1) {
+          streak++;
+        } else {
+          break;
+        }
+        prev = curr;
+      }
+
+      bestStreak = bestStreak > streak ? bestStreak : streak;
+    }
+
+    return {
+      'activeHabits': snapshot.docs.length,
+      'todayCompleted': todayDone,
+      'bestStreak': bestStreak,
+    };
+  }
+
+
+  bool _isSameDay(DateTime a, DateTime b) {
+    return a.year == b.year &&
+        a.month == b.month &&
+        a.day == b.day;
   }
 }
