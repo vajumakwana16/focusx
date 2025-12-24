@@ -19,7 +19,7 @@ class GoogleSignInPage extends StatelessWidget {
               const Spacer(),
 
               // 🌟 App Logo / Icon
-              Container(
+              /*Container(
                 height: 96,
                 width: 96,
                 decoration: BoxDecoration(
@@ -36,9 +36,10 @@ class GoogleSignInPage extends StatelessWidget {
                   size: 48,
                   color: Colors.white,
                 ),
-              ),
+              ),*/
+              Image.asset('assets/ic_launcher_round.png'),
 
-              const SizedBox(height: 28),
+              // const SizedBox(height: 28),
 
               // 🧠 Title
               Text(
@@ -110,12 +111,12 @@ class GoogleSignInPage extends StatelessWidget {
               const SizedBox(height: 20),
 
               // 🔒 Privacy note
-              Text(
+             /* Text(
                 'We never post anything without your permission.',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.hintColor,
                 ),
-              ),
+              ),*/
 
               const Spacer(),
 

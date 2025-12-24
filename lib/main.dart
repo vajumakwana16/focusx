@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:focusx/provider/dashboard_controller.dart';
 import 'package:focusx/provider/haptic_provider.dart';
+import 'package:focusx/services/haptic_service.dart';
 import 'package:focusx/services/notification_service.dart';
 import 'package:focusx/ui/screens/dashboard.dart';
 import 'package:focusx/ui/screens/google_sign_in_page.dart';
@@ -21,7 +22,7 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider<ThemeProvider>(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider<HapticProvider>(create: (_) => HapticProvider()),
+        ChangeNotifierProvider<HapticProvider>(create: (_) => HapticProvider()..load()),
         ChangeNotifierProvider<DashboardProvider>(create: (_) => DashboardProvider()),
       ],
       child: const MyApp(),

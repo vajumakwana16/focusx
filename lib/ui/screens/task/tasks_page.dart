@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:focusx/ui/screens/task/task_card.dart';
 import '../../../models/task.dart';
-import '../../../services/firestore_service.dart';
 import '../../../utils/webservice.dart';
 
 class TasksPage extends StatelessWidget {
@@ -9,10 +8,9 @@ class TasksPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       body: StreamBuilder<List<Task>>(
-        stream:Webservice.firebaseService.watchTasks(),
+        stream: Webservice.firebaseService.watchTasks(isToday: false),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());

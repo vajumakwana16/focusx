@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:focusx/provider/dashboard_controller.dart';
 import 'package:focusx/ui/screens/task/task_card.dart';
-import 'package:focusx/ui/screens/task/tasks_page.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/habit.dart';
 import '../../models/task.dart';
-import '../../services/firestore_service.dart';
 import '../../utils/webservice.dart';
 import '../widgets/skeleton.dart';
+import '../widgets/weekly_task_graph.dart';
 import 'habit/habit_card.dart';
 
 class HomePage extends StatelessWidget {
@@ -21,9 +20,11 @@ class HomePage extends StatelessWidget {
         physics: BouncingScrollPhysics(),
         padding: const EdgeInsets.all(16).copyWith(bottom: 100),
         children: [
-          
+          /// 📊 WEEKLY CONSISTENCY
+          WeeklyTaskGraph(),
+
           /// 🔝 TODAY FOCUS
-          FutureBuilder<Map<String, dynamic>>(
+          /*FutureBuilder<Map<String, dynamic>>(
             future:Webservice.firebaseService.getTodayTaskStats(),
             builder: (context, snapshot) {
               if (!snapshot.hasData) {
@@ -37,15 +38,14 @@ class HomePage extends StatelessWidget {
                 status: d['status'],
               );
             },
-          ),
-
+          ),*/
           const SizedBox(height: 16),
 
           /// 📋 TODAY TASKS
           _SectionHeader(
             title: 'Today’s Tasks',
             action: 'View All',
-            onTap: ()=>context.read<DashboardProvider>().setIndex(1),
+            onTap: () => context.read<DashboardProvider>().setIndex(1),
           ),
 
           /*FutureBuilder<List<Task>>(
@@ -65,37 +65,49 @@ class HomePage extends StatelessWidget {
               );
             },
           ),*/
-
           StreamBuilder<List<Task>>(
-            stream:Webservice.firebaseService.watchTasks(isToday: true),
+            initialData: [],
+            stream: Webservice.firebaseService.watchTasks(isToday: true),
             builder: (context, snapshot) {
-              if (!snapshot.hasData) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
               }
 
-              final tasks = snapshot.data!;
-              if (tasks.isEmpty) {
+              final tasks = snapshot.data;
+              if (tasks == null) {
                 return const Center(child: Text('No tasks yet'));
               }
+              print("tasks");
+              print(tasks);
 
-              return ListView.builder(
-                itemCount: tasks.length,
-                itemBuilder: (_, i) {
-                  final t = tasks[i];
-                  return TaskCard(task: t);
-                },
+              return SizedBox(
+                height: MediaQuery.sizeOf(context).height * 0.34,
+                child: ListView.builder(
+                  physics: NeverScrollableScrollPhysics(),
+                  shrinkWrap: true,
+                  itemCount: tasks.length,
+                  itemBuilder: (_, i) {
+                    if (i <= 3) {
+                      final t = tasks[i];
+                      return TaskCard(task: t);
+                    }
+                  },
+                ),
               );
             },
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 0),
 
           /// 🔁 TODAY HABITS
-          _SectionHeader(title: 'Habits',action: 'View All',
-            onTap: ()=>context.read<DashboardProvider>().setIndex(2),),
+          _SectionHeader(
+            title: 'Habits',
+            action: 'View All',
+            onTap: () => context.read<DashboardProvider>().setIndex(2),
+          ),
 
           FutureBuilder<List<Habit>>(
-            future:Webservice.firebaseService.getTodayHabits(),
+            future: Webservice.firebaseService.getTodayHabits(),
             builder: (context, snapshot) {
               if (!snapshot.hasData) {
                 return const Skeleton(height: 120);
@@ -142,7 +154,10 @@ class _TodayFocusCard extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [theme.colorScheme.primary, theme.colorScheme.secondary.withAlpha(200)],
+            colors: [
+              theme.colorScheme.primary,
+              theme.colorScheme.secondary.withAlpha(200),
+            ],
           ),
           borderRadius: BorderRadius.circular(24),
         ),
@@ -155,8 +170,9 @@ class _TodayFocusCard extends StatelessWidget {
               margin: EdgeInsets.all(0),
               width: double.infinity,
               decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.white)),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.white),
+              ),
               child: Column(
                 children: [
                   const SizedBox(height: 8),
@@ -174,7 +190,7 @@ class _TodayFocusCard extends StatelessWidget {
                 ],
               ),
             ),
-                  const SizedBox(height: 16),
+            const SizedBox(height: 16),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Row(
@@ -205,12 +221,15 @@ class _SectionHeader extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
+        Icon(title == "Habits" ? Icons.event_repeat : Icons.task_alt_sharp),
+        SizedBox(width: 10),
         Text(
           title,
           style: Theme.of(
             context,
-          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
+        Spacer(),
         if (action != null) TextButton(onPressed: onTap, child: Text(action!)),
       ],
     );
@@ -260,6 +279,46 @@ class _MiniStat extends StatelessWidget {
           ),
           Text(label, style: const TextStyle(color: Colors.white70)),
         ],
+      ),
+    );
+  }
+}
+
+class AnalyticsCard extends StatelessWidget {
+  final String title;
+  final String? subtitle;
+  final Widget child;
+
+  const AnalyticsCard({
+    required this.title,
+    this.subtitle,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            if (subtitle != null) ...[
+              const SizedBox(height: 4),
+              Text(subtitle!, style: Theme.of(context).textTheme.bodySmall),
+            ],
+            const SizedBox(height: 12),
+            child,
+          ],
+        ),
       ),
     );
   }

@@ -1,16 +1,37 @@
-# focusx
+# 🚀 FocusX – Smart Productivity & Habit Tracker
 
-A new Flutter project.
+![FocusX Feature Graphic](A_feature_graphic_promotional_graphic_for_a_produc.png)
 
-## Getting Started
+> **FocusX** is a modern productivity app designed to help you organize tasks, build habits, and stay focused every day with clean design, smart reminders, and powerful insights.
 
-This project is a starting point for a Flutter application.
+# 🚀 FocusX – Smart Productivity App
+  
+![FocusX Feature Graphic](https://play-lh.googleusercontent.com/5rZyrvhikqUHaoyWlvZedq4fAN7Sl7Fr-pTe-_YNmwSNIgPCGKSZXe_H17Wmxo5Yj3FgcTm8L5U_XoVbRWSKCGY=w526-h296-rw) 
+![VM](https://play-lh.googleusercontent.com/L7y1hJ5T9qWMltdoAJH3gTXs-d8F80lIc6NubLFS-ygXfEtEQWiCg3m4d5XnGEDiz3bpoSQflMLFJYpfBwuB6WY=w526-h296-rw)
 
-A few resources to get you started if this is your first Flutter project:
+[![Get it on Google Play](https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png)](https://play.google.com/store/apps/details?id=com.vm.focusx)
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+FocusX helps you manage tasks, track habits, and boost productivity with a clean, modern experience.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+
+## ✨ Why FocusX?
+FocusX helps you stay organized, build consistency, and improve productivity with a distraction‑free experience.
+
+## 🔥 Key Features
+- Task Management with reminders
+- Habit Tracker with streaks
+- Productivity analytics
+- Light & Dark mode
+- Offline-first & privacy-friendly
+
+## 🛠️ Tech Stack
+- Flutter & Dart
+- Provider / Bloc
+- SQLite / SharedPreferences
+- Flutter Local Notifications
+
+## 🔐 Privacy
+No personal data collection. All data stays on device.
+
+## 👨‍💻 Developer
+[Vaju Mukwana – Flutter Developer](https://vajumakwana16.github.io)

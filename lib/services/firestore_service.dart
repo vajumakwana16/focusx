@@ -24,6 +24,7 @@ class FirestoreService {
           .collection('users')
           .doc(uid)
           .collection('tasks')
+          // .where('createdAt',isEqualTo: DateTime.now().toIso8601String())
           .orderBy('createdAt', descending: true)
           .snapshots(includeMetadataChanges: true)
           .map((snapshot) {
@@ -36,7 +37,6 @@ class FirestoreService {
           .collection('users')
           .doc(uid)
           .collection('tasks')
-          .where('createdAt',isEqualTo: DateTime.now().toIso8601String().substring(0,10))
           .orderBy('createdAt', descending: true)
           .snapshots(includeMetadataChanges: true)
           .map((snapshot) {
@@ -44,6 +44,18 @@ class FirestoreService {
             .map((d) => Task.fromMap(d.data(), d.id))
             .toList();
       });
+      /* return _firestore
+          .collection('users')
+          .doc(uid)
+          .collection('tasks')
+          .where('createdAt',isEqualTo: DateTime.now().toIso8601String().substring(0,10))
+          .orderBy('createdAt', descending: true)
+          .snapshots(includeMetadataChanges: true)
+          .map((snapshot) {
+        return snapshot.docs
+            .map((d) => Task.fromMap(d.data(), d.id))
+            .toList();
+      });*/
     }
   }
 

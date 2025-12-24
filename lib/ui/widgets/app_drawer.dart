@@ -83,7 +83,7 @@ class AppDrawer extends StatelessWidget {
             Spacer(),
             const Divider(),
             const SizedBox(height: 12),
-            Text("v1.0.13",style: context.textTheme.titleSmall!.copyWith(fontWeight: FontWeight.bold)),
+            Text("v1.0.1",style: context.textTheme.titleSmall!.copyWith(fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
           ],
         ),

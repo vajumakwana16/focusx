@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../utils/webservice.dart';
 import '../../widgets/skeleton.dart';
+import '../../widgets/weekly_task_graph.dart';
 import '../habit/habit_insights.dart';
 
 
@@ -36,20 +37,7 @@ class AnalyticsPage extends StatelessWidget {
           const SizedBox(height: 16),
 
           /// 📊 WEEKLY CONSISTENCY
-          FutureBuilder<List<Map<String, dynamic>>>(
-            future:Webservice.firebaseService.getWeeklyCompletedTasks(),
-            builder: (context, snapshot) {
-              if (!snapshot.hasData) {
-                return const Skeleton(height: 140);
-              }
-
-              return AnalyticsCard(
-                title: 'Tasks Completed (Last 7 Days)',
-                subtitle: 'Number of tasks you finished each day',
-                child: _WeeklyTaskBar(data: snapshot.data!),
-              );
-            },
-          ),
+          WeeklyTaskGraph(),
 
 
           const SizedBox(height: 16),
@@ -60,75 +48,6 @@ class AnalyticsPage extends StatelessWidget {
       ),
     );
   }
-}
-
-class _WeeklyTaskBar extends StatelessWidget {
-  final List<Map<String, dynamic>> data;
-
-  const _WeeklyTaskBar({required this.data});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final counts = data.map((e) => e['count'] as int).toList();
-
-    final maxValue =
-    counts.isEmpty ? 1 : counts.reduce((a, b) => a > b ? a : b);
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: List.generate(data.length, (i) {
-        final count = data[i]['count'] as int;
-        final label = data[i]['dayLabel'] as String;
-
-        final double height =
-        count == 0 ? 0 : 60 * (count / maxValue);
-
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Text(
-              count.toString(),
-              style: theme.textTheme.bodySmall,
-            ),
-            SizedBox(
-              height: 60,
-              width: 14,
-              child: Stack(
-                alignment: Alignment.bottomCenter,
-                children: [
-                  // Background track
-                  Container(
-                    height: 60,
-                    width: 14,
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.secondary.withAlpha(20),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  if (count > 0)
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      height: height,
-                      width: 14,
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primary,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(label),
-          ],
-        );
-      }),
-    );
-  }
-
-
 }
 
 class _HeroAnalyticsCard extends StatelessWidget {

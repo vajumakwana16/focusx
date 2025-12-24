@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:interval_time_picker/interval_time_picker.dart';
+import 'package:interval_time_picker/models/visible_step.dart';
 
 class TaskForm extends StatelessWidget {
   final GlobalKey<FormState> formKey;
@@ -46,7 +48,7 @@ class TaskForm extends StatelessWidget {
             label: 'Task Title',
             icon: Icons.title,
             validator: (v) =>
-            v == null || v.isEmpty ? 'Title is required' : null,
+                v == null || v.isEmpty ? 'Title is required' : null,
           ),
 
           _field(
@@ -87,9 +89,16 @@ class TaskForm extends StatelessWidget {
                       : selectedTime!.format(context),
                   icon: Icons.access_time,
                   onTap: () async {
-                    final t = await showTimePicker(
+                    /*final t = await showTimePicker(
                       context: context,
                       initialTime: TimeOfDay.now(),
+                    );*/
+
+                    final t = await showIntervalTimePicker(
+                      context: context,
+                      initialTime: TimeOfDay.fromDateTime(DateTime.now()),
+                      interval: 5,
+                      visibleStep: VisibleStep.fifths,
                     );
                     if (t != null) onTimeChanged(t);
                   },
@@ -141,11 +150,10 @@ class TaskForm extends StatelessWidget {
         validator: validator,
         maxLines: maxLines,
         decoration: InputDecoration(
+          floatingLabelAlignment: FloatingLabelAlignment.center,
           labelText: label,
           prefixIcon: Icon(icon),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
         ),
       ),
     );
@@ -167,20 +175,18 @@ class TaskForm extends StatelessWidget {
         onChanged: (v) => onChanged(v!),
         decoration: InputDecoration(
           labelText: label,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
         ),
       ),
     );
   }
 
   Widget _pickerTile(
-      BuildContext context, {
-        required String label,
-        required IconData icon,
-        required VoidCallback onTap,
-      }) {
+    BuildContext context, {
+    required String label,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
     return InkWell(
       borderRadius: BorderRadius.circular(16),
       onTap: onTap,

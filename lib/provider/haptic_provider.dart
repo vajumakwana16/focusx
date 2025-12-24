@@ -10,10 +10,10 @@ class HapticProvider extends ChangeNotifier {
 
   HapticProvider() {
     instance = this; // 👈 GLOBAL ACCESS
-    _load();
+    load();
   }
 
-  Future<void> _load() async {
+  Future<void> load() async {
     _enabled = Webservice.pref.getBool('haptic_enabled') ?? true;
     notifyListeners();
   }

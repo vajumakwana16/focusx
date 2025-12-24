@@ -31,7 +31,7 @@ class ModernBottomBar extends StatelessWidget {
         children: [
           _Item(context,Icons.dashboard_rounded, "Home", 0),
           _Item(context,Icons.checklist_rounded, "Tasks", 1),
-          _Item(context,Icons.repeat_rounded, "Habit", 2),
+          _Item(context,Icons.event_repeat, "Habit", 2),
           _Item(context,Icons.bar_chart, "Analytics", 3),
           // _Item(context,Icons.settings_rounded, "Settings", 4),
         ],

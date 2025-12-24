@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:interval_time_picker/interval_time_picker.dart';
+import 'package:interval_time_picker/models/visible_step.dart';
 
 class HabitForm extends StatelessWidget {
   final GlobalKey<FormState> formKey;
@@ -70,9 +72,15 @@ class HabitForm extends StatelessWidget {
                     : reminderTime!.format(context),
               ),
               onTap: () async {
-                final t = await showTimePicker(
+                /*final t = await showTimePicker(
                   context: context,
                   initialTime: TimeOfDay.now(),
+                );*/
+                final t = await showIntervalTimePicker(
+                  context: context,
+                  initialTime: TimeOfDay.fromDateTime(DateTime.now()),
+                  interval: 5,
+                  visibleStep: VisibleStep.fifths,
                 );
                 if (t != null) onTimeChanged(t);
               },
