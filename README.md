@@ -1,10 +1,9 @@
 # 🚀 FocusX – Smart Productivity & Habit Tracker
 
-![FocusX Feature Graphic](A_feature_graphic_promotional_graphic_for_a_produc.png)
+![FocusX Feature Graphic](assets/ic_launcher_round.png)
 
 > **FocusX** is a modern productivity app designed to help you organize tasks, build habits, and stay focused every day with clean design, smart reminders, and powerful insights.
 
-# 🚀 FocusX – Smart Productivity App
   
 ![FocusX Feature Graphic](https://play-lh.googleusercontent.com/5rZyrvhikqUHaoyWlvZedq4fAN7Sl7Fr-pTe-_YNmwSNIgPCGKSZXe_H17Wmxo5Yj3FgcTm8L5U_XoVbRWSKCGY=w526-h296-rw) 
 ![VM](https://play-lh.googleusercontent.com/L7y1hJ5T9qWMltdoAJH3gTXs-d8F80lIc6NubLFS-ygXfEtEQWiCg3m4d5XnGEDiz3bpoSQflMLFJYpfBwuB6WY=w526-h296-rw)
