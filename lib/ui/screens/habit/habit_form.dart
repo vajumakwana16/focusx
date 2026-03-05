@@ -10,10 +10,12 @@ class HabitForm extends StatelessWidget {
   final String frequency;
   final bool reminderEnabled;
   final TimeOfDay? reminderTime;
+  final int selectedColor;
 
   final ValueChanged<String> onFrequencyChanged;
   final ValueChanged<bool> onReminderChanged;
   final ValueChanged<TimeOfDay> onTimeChanged;
+  final ValueChanged<int>? onColorChanged;
 
   const HabitForm({
     super.key,
@@ -23,13 +25,28 @@ class HabitForm extends StatelessWidget {
     required this.frequency,
     required this.reminderEnabled,
     required this.reminderTime,
+    this.selectedColor = 0xFF5B7CFA,
     required this.onFrequencyChanged,
     required this.onReminderChanged,
     required this.onTimeChanged,
+    this.onColorChanged,
   });
+
+  static const List<int> _palette = [
+    0xFF5B7CFA, // Blue
+    0xFF7FD1AE, // Green
+    0xFFFF7B7B, // Red
+    0xFFFFC175, // Orange
+    0xFFAF81FA, // Purple
+    0xFF60C5E4, // Cyan
+    0xFFFF85C0, // Pink
+    0xFFFFD166, // Yellow
+  ];
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Form(
       key: formKey,
       child: ListView(
@@ -39,7 +56,7 @@ class HabitForm extends StatelessWidget {
             label: 'Habit Title',
             icon: Icons.repeat,
             validator: (v) =>
-            v == null || v.isEmpty ? 'Required' : null,
+                v == null || v.isEmpty ? 'Required' : null,
           ),
 
           _field(
@@ -55,6 +72,64 @@ class HabitForm extends StatelessWidget {
             items: const ['Daily', 'Weekly'],
             onChanged: onFrequencyChanged,
           ),
+
+          // Color picker
+          if (onColorChanged != null) ...[
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 4, bottom: 8),
+                    child: Text(
+                      'Color',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurface.withOpacity(0.7),
+                      ),
+                    ),
+                  ),
+                  Row(
+                    children: _palette.map((c) {
+                      final isSelected = selectedColor == c;
+                      return GestureDetector(
+                        onTap: () => onColorChanged!(c),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          width: 32,
+                          height: 32,
+                          margin: const EdgeInsets.only(right: 8),
+                          decoration: BoxDecoration(
+                            color: Color(c),
+                            shape: BoxShape.circle,
+                            border: isSelected
+                                ? Border.all(
+                                    color: theme.colorScheme.onSurface,
+                                    width: 2.5,
+                                  )
+                                : null,
+                            boxShadow: isSelected
+                                ? [
+                                    BoxShadow(
+                                      color: Color(c).withOpacity(0.5),
+                                      blurRadius: 8,
+                                      spreadRadius: 1,
+                                    )
+                                  ]
+                                : null,
+                          ),
+                          child: isSelected
+                              ? const Icon(Icons.check,
+                                  color: Colors.white, size: 16)
+                              : null,
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
+            ),
+          ],
 
           SwitchListTile(
             title: const Text('Enable Reminder'),
@@ -72,10 +147,6 @@ class HabitForm extends StatelessWidget {
                     : reminderTime!.format(context),
               ),
               onTap: () async {
-                /*final t = await showTimePicker(
-                  context: context,
-                  initialTime: TimeOfDay.now(),
-                );*/
                 final t = await showIntervalTimePicker(
                   context: context,
                   initialTime: TimeOfDay.fromDateTime(DateTime.now()),
@@ -126,7 +197,7 @@ class HabitForm extends StatelessWidget {
         value: value,
         items: items
             .map((e) =>
-            DropdownMenuItem(value: e, child: Text(e)))
+                DropdownMenuItem(value: e, child: Text(e)))
             .toList(),
         onChanged: (v) => onChanged(v!),
         decoration: InputDecoration(

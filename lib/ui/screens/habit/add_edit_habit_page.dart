@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:focusx/utils/webservice.dart';
-import 'package:focusx/utils/webservice.dart';
-import 'package:focusx/utils/webservice.dart';
 import '../../../models/habit.dart';
-import '../../../services/firestore_service.dart';
 import '../../../services/haptic_service.dart';
 import '../../../services/notification_service.dart';
 import 'habit_form.dart';
@@ -25,7 +22,7 @@ class _AddEditHabitPageState extends State<AddEditHabitPage> {
   String frequency = 'Daily';
   TimeOfDay? reminderTime;
   bool reminderEnabled = false;
-  int color = Colors.blue.value;
+  int color = 0xFF5B7CFA;
 
   @override
   void initState() {
@@ -35,6 +32,7 @@ class _AddEditHabitPageState extends State<AddEditHabitPage> {
     title = TextEditingController(text: h?.title ?? '');
     description = TextEditingController(text: h?.description ?? '');
     frequency = h?.frequency ?? 'Daily';
+    color = h?.color ?? 0xFF5B7CFA;
     reminderEnabled = h?.reminderTime.isNotEmpty == true;
 
     if (h?.reminderTime.isNotEmpty == true) {
@@ -46,11 +44,18 @@ class _AddEditHabitPageState extends State<AddEditHabitPage> {
     }
   }
 
+  @override
+  void dispose() {
+    title.dispose();
+    description.dispose();
+    super.dispose();
+  }
+
   Future<void> _saveHabit() async {
     if (!_formKey.currentState!.validate()) return;
     HapticService.tap();
     final notificationId =
-    reminderEnabled ? DateTime.now().millisecondsSinceEpoch ~/ 1000 : 0;
+        reminderEnabled ? DateTime.now().millisecondsSinceEpoch ~/ 1000 : 0;
 
     final habit = Habit(
       id: widget.habit?.id,
@@ -106,8 +111,31 @@ class _AddEditHabitPageState extends State<AddEditHabitPage> {
               icon: const Icon(Icons.delete_outline),
               onPressed: () async {
                 HapticService.heavy();
-                await Webservice.firebaseService.deleteHabit(widget.habit!.id!);
-                Navigator.pop(context);
+                final confirm = await showDialog<bool>(
+                  context: context,
+                  builder: (_) => AlertDialog(
+                    title: const Text('Delete habit?'),
+                    content: const Text(
+                        'This will remove all completion history.'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: const Text('Cancel'),
+                      ),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red),
+                        onPressed: () => Navigator.pop(context, true),
+                        child: const Text('Delete'),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirm == true && mounted) {
+                  await Webservice.firebaseService
+                      .deleteHabit(widget.habit!.id!);
+                  Navigator.pop(context);
+                }
               },
             ),
         ],
@@ -115,7 +143,7 @@ class _AddEditHabitPageState extends State<AddEditHabitPage> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _saveHabit,
         icon: const Icon(Icons.check),
-        label: const Text('Save Habit'),
+        label: Text(isEdit ? 'Update Habit' : 'Save Habit'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -126,9 +154,11 @@ class _AddEditHabitPageState extends State<AddEditHabitPage> {
           frequency: frequency,
           reminderEnabled: reminderEnabled,
           reminderTime: reminderTime,
+          selectedColor: color,
           onFrequencyChanged: (v) => setState(() => frequency = v),
           onReminderChanged: (v) => setState(() => reminderEnabled = v),
           onTimeChanged: (t) => setState(() => reminderTime = t),
+          onColorChanged: (c) => setState(() => color = c),
         ),
       ),
     );
