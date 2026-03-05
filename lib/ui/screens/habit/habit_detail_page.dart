@@ -340,7 +340,7 @@ class _Last30DaysGrid extends StatelessWidget {
 
         return Tooltip(
           message:
-              '${date.day}/${date.month}${isCompleted ? ' ✓' : ''}',
+              '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}${isCompleted ? ' ✓' : ''}',
           child: Container(
             decoration: BoxDecoration(
               color: isCompleted
