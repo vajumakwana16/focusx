@@ -26,15 +26,22 @@ class DashboardProvider extends ChangeNotifier {
     super.dispose();
   }
 
-  Future<void> setIndex(int i) async {
+  void setIndex(int i) {
+    if (_index == i) return;
     _index = i;
     HapticService.tap();
-    pageController.animateToPage(
-      i,
-      duration: const Duration(milliseconds: 320),
-      curve: Curves.easeOutCubic, // 🔥 smooth slide
-    );
     notifyListeners();
+
+    // Tiny delay to ensure UI rebuilds before PageView animation begins
+    Future.delayed(const Duration(milliseconds: 10), () {
+      if (pageController.hasClients) {
+        pageController.animateToPage(
+          i,
+          duration: const Duration(milliseconds: 350),
+          curve: Curves.easeOutCubic,
+        );
+      }
+    });
   }
 
 }

@@ -7,101 +7,157 @@ import 'package:provider/provider.dart';
 import '../../models/habit.dart';
 import '../../models/task.dart';
 import '../../utils/webservice.dart';
+import '../theme/app_theme.dart';
 import '../widgets/donut_chart.dart';
 import '../widgets/skeleton.dart';
 import '../widgets/weekly_task_graph.dart';
 import 'habit/habit_card.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage>
+    with AutomaticKeepAliveClientMixin {
+  late Future<Map<String, dynamic>> _statsFuture;
+
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+    // Refresh stats whenever this tab becomes visible
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final provider = context.read<DashboardProvider>();
+      provider.addListener(_onTabChanged);
+    });
+  }
+
+  @override
+  void dispose() {
+    DashboardProvider.instance?.removeListener(_onTabChanged);
+    super.dispose();
+  }
+
+  void _onTabChanged() {
+    final index = DashboardProvider.instance?.index ?? -1;
+    if (index == 0 && mounted) {
+      setState(() => _loadData());
+    }
+  }
+
+  void _loadData() {
+    _statsFuture = Webservice.firebaseService.getTodayTaskStats();
+  }
+
+  Future<void> _refresh() async {
+    setState(() {
+      _loadData();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context); // Required by AutomaticKeepAliveClientMixin
     final user = FirebaseAuth.instance.currentUser;
     final name = user?.displayName?.split(' ').first ??
         (user?.isAnonymous == true ? 'Guest' : 'Friend');
 
     return Scaffold(
-      body: ListView(
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.all(16).copyWith(bottom: 100),
-        children: [
-          // Greeting header
-          _GreetingHeader(name: name),
-          const SizedBox(height: 16),
-
-          // Today stats summary
-          FutureBuilder<Map<String, dynamic>>(
-            future: Webservice.firebaseService.getTodayTaskStats(),
-            builder: (context, snapshot) {
-              if (!snapshot.hasData) return const Skeleton(height: 100);
-              final d = snapshot.data!;
-              return _TodayStatsBanner(
-                planned: d['plannedToday'],
-                completed: d['completedToday'],
-                score: d['score'],
-                status: d['status'],
-              );
-            },
+      body: RefreshIndicator(
+        onRefresh: _refresh,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
           ),
-          const SizedBox(height: 16),
+          padding: const EdgeInsets.all(16).copyWith(bottom: 100),
+          children: [
+            // Greeting header
+            _GreetingHeader(
+              name: name,
+              photoUrl: user?.photoURL,
+              isGuest: user?.isAnonymous ?? true,
+            ),
+            const SizedBox(height: 16),
 
-          // Weekly chart
-          WeeklyTaskGraph(),
-          const SizedBox(height: 16),
+            // Today stats summary (cached)
+            FutureBuilder<Map<String, dynamic>>(
+              future: _statsFuture,
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) return const Skeleton(height: 100);
+                final d = snapshot.data!;
+                return _TodayStatsBanner(
+                  planned: d['plannedToday'],
+                  completed: d['completedToday'],
+                  score: d['score'],
+                  status: d['status'],
+                );
+              },
+            ),
+            const SizedBox(height: 16),
 
-          // Today tasks section
-          _SectionHeader(
-            icon: Icons.task_alt_sharp,
-            title: "Today's Tasks",
-            action: 'View All',
-            onTap: () => context.read<DashboardProvider>().setIndex(1),
-          ),
-          const SizedBox(height: 8),
+            // Weekly chart
+            WeeklyTaskGraph(),
+            const SizedBox(height: 16),
 
-          StreamBuilder<List<Task>>(
-            initialData: const [],
-            stream: Webservice.firebaseService.watchTasks(isToday: true),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Skeleton(height: 160);
-              }
-              final tasks = snapshot.data ?? [];
-              if (tasks.isEmpty) {
-                return const _EmptyState(text: 'No tasks for today 🎉');
-              }
-              final shown = tasks.take(4).toList();
-              return Column(
-                children: shown.map((t) => TaskCard(task: t)).toList(),
-              );
-            },
-          ),
-          const SizedBox(height: 16),
+            // Today tasks section
+            _SectionHeader(
+              icon: Icons.task_alt_rounded,
+              title: "Today's Tasks",
+              action: 'View All',
+              onTap: () => context.read<DashboardProvider>().setIndex(1),
+            ),
+            const SizedBox(height: 8),
 
-          // Habits section
-          _SectionHeader(
-            icon: Icons.event_repeat,
-            title: 'Habits',
-            action: 'View All',
-            onTap: () => context.read<DashboardProvider>().setIndex(2),
-          ),
-          const SizedBox(height: 8),
+            StreamBuilder<List<Task>>(
+              initialData: const [],
+              stream: Webservice.firebaseService.watchTasks(isToday: true),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Skeleton(height: 160);
+                }
+                final tasks = snapshot.data ?? [];
+                if (tasks.isEmpty) {
+                  return const _EmptyState(text: 'No tasks for today 🎉');
+                }
+                final shown = tasks.take(4).toList();
+                return Column(
+                  children: shown.map((t) => TaskCard(task: t)).toList(),
+                );
+              },
+            ),
+            const SizedBox(height: 16),
 
-          FutureBuilder<List<Habit>>(
-            future: Webservice.firebaseService.getTodayHabits(),
-            builder: (context, snapshot) {
-              if (!snapshot.hasData) return const Skeleton(height: 120);
-              final habits = snapshot.data!;
-              if (habits.isEmpty) {
-                return const _EmptyState(text: 'No habits scheduled today');
-              }
-              final shown = habits.take(3).toList();
-              return Column(
-                children: shown.map((h) => HabitCard(habit: h)).toList(),
-              );
-            },
-          ),
-        ],
+            // Habits section
+            _SectionHeader(
+              icon: Icons.event_repeat_rounded,
+              title: 'Habits',
+              action: 'View All',
+              onTap: () => context.read<DashboardProvider>().setIndex(2),
+            ),
+            const SizedBox(height: 8),
+
+            StreamBuilder<List<Habit>>(
+              stream: Webservice.firebaseService.watchHabits(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) return const Skeleton(height: 120);
+                final habits = snapshot.data!;
+                if (habits.isEmpty) {
+                  return const _EmptyState(text: 'No habits scheduled today');
+                }
+                final shown = habits.take(3).toList();
+                return Column(
+                  children: shown.map((h) => HabitCard(habit: h)).toList(),
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -109,11 +165,18 @@ class HomePage extends StatelessWidget {
 
 class _GreetingHeader extends StatelessWidget {
   final String name;
-  const _GreetingHeader({required this.name});
+  final String? photoUrl;
+  final bool isGuest;
+  const _GreetingHeader({
+    required this.name,
+    this.photoUrl,
+    this.isGuest = true,
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final hour = DateTime.now().hour;
     final String greeting;
     final IconData greetIcon;
@@ -131,6 +194,39 @@ class _GreetingHeader extends StatelessWidget {
 
     return Row(
       children: [
+        // Profile picture on the LEFT
+        Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: AppTheme.primary.withOpacity(0.3),
+              width: 2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.primary.withOpacity(0.1),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: CircleAvatar(
+            radius: 24,
+            backgroundColor: AppTheme.primary.withOpacity(isDark ? 0.2 : 0.1),
+            backgroundImage: photoUrl != null ? NetworkImage(photoUrl!) : null,
+            child: photoUrl == null
+                ? Text(
+                    isGuest ? '?' : name[0].toUpperCase(),
+                    style: const TextStyle(
+                      color: AppTheme.primary,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                    ),
+                  )
+                : null,
+          ),
+        ),
+        const SizedBox(width: 14),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -138,10 +234,10 @@ class _GreetingHeader extends StatelessWidget {
               Row(
                 children: [
                   Icon(greetIcon,
-                      size: 18,
+                    size: 16,
                       color:
                           theme.colorScheme.onSurface.withOpacity(0.5)),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 5),
                   Text(
                     greeting,
                     style: theme.textTheme.bodyMedium?.copyWith(
@@ -155,12 +251,13 @@ class _GreetingHeader extends StatelessWidget {
                 name,
                 style: theme.textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
+                  letterSpacing: -0.3,
                 ),
               ),
             ],
           ),
         ),
-        const _DateChip(),
+        const _DateChip(),  
       ],
     );
   }
@@ -182,24 +279,29 @@ class _DateChip extends StatelessWidget {
     final monthName = months[now.month - 1];
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
+        gradient: LinearGradient(
+          colors: [
+            AppTheme.primary.withOpacity(0.12),
+            AppTheme.secondary.withOpacity(0.08),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
         children: [
           Text(
             dayName,
             style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.primary,
+              color: AppTheme.primary,
               fontWeight: FontWeight.w600,
             ),
           ),
           Text(
             '${now.day}',
             style: theme.textTheme.titleLarge?.copyWith(
-              color: theme.colorScheme.primary,
+              color: AppTheme.primary,
               fontWeight: FontWeight.bold,
               height: 1.1,
             ),
@@ -207,7 +309,7 @@ class _DateChip extends StatelessWidget {
           Text(
             monthName,
             style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.primary.withOpacity(0.7),
+              color: AppTheme.primary.withOpacity(0.7),
               fontSize: 10,
             ),
           ),
@@ -232,21 +334,26 @@ class _TodayStatsBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final ratio = planned == 0 ? 0.0 : completed / planned;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            theme.colorScheme.primary,
-            theme.colorScheme.secondary,
+            AppTheme.primary, AppTheme.secondary,
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.primary.withOpacity(0.25),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -261,16 +368,29 @@ class _TodayStatsBanner extends StatelessWidget {
                     fontSize: 12,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  'Focus Score: $score/10',
-                  style: const TextStyle(
+                const SizedBox(height: 6),
+                const Text(
+                  'Daily Goal',
+                  style: TextStyle(
                     color: Colors.white,
-                    fontSize: 18,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: SizedBox(
+                    width: 120,
+                    height: 6,
+                    child: LinearProgressIndicator(
+                      value: ratio,
+                      backgroundColor: Colors.white24,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
                 Row(
                   children: [
                     _StatPill(
@@ -347,8 +467,15 @@ class _SectionHeader extends StatelessWidget {
     final theme = Theme.of(context);
     return Row(
       children: [
-        Icon(icon, size: 20, color: theme.colorScheme.primary),
-        const SizedBox(width: 8),
+        Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: AppTheme.primary.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, size: 18, color: AppTheme.primary),
+        ),
+        const SizedBox(width: 10),
         Text(
           title,
           style: theme.textTheme.titleMedium?.copyWith(
@@ -362,8 +489,9 @@ class _SectionHeader extends StatelessWidget {
             child: Text(
               action!,
               style: TextStyle(
-                color: theme.colorScheme.primary,
+                color: AppTheme.primary,
                 fontSize: 13,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),

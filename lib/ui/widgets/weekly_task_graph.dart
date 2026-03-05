@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../utils/webservice.dart';
+import '../theme/app_theme.dart';
 import 'skeleton.dart';
 
 class WeeklyTaskGraph extends StatelessWidget {
@@ -28,6 +29,7 @@ class _WeeklyGraphCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final counts = data.map((e) => e['count'] as int).toList();
     final maxValue =
         counts.isEmpty ? 1 : counts.reduce((a, b) => a > b ? a : b);
@@ -35,7 +37,7 @@ class _WeeklyGraphCard extends StatelessWidget {
 
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(18),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -62,24 +64,24 @@ class _WeeklyGraphCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 10,
-                    vertical: 4,
+                    vertical: 5,
                   ),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withOpacity(0.1),
+                    color: AppTheme.primary.withOpacity(isDark ? 0.15 : 0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
                     children: [
                       Icon(
-                        Icons.trending_up,
+                        Icons.trending_up_rounded,
                         size: 14,
-                        color: theme.colorScheme.primary,
+                        color: AppTheme.primary,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         '$totalCompleted done',
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.primary,
+                          color: AppTheme.primary,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -91,7 +93,7 @@ class _WeeklyGraphCard extends StatelessWidget {
             const SizedBox(height: 20),
             // Bar chart
             SizedBox(
-              height: 100,
+              height: 120,
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -100,7 +102,9 @@ class _WeeklyGraphCard extends StatelessWidget {
                   final label = data[i]['dayLabel'] as String;
                   final isToday = i == data.length - 1;
                   final double barHeight =
-                      maxValue == 0 ? 0 : 70 * (count / maxValue);
+                      maxValue == 0
+                      ? 0
+                      : 56 * (count / maxValue);
 
                   return Expanded(
                     child: Padding(
@@ -113,7 +117,7 @@ class _WeeklyGraphCard extends StatelessWidget {
                               '$count',
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: isToday
-                                    ? theme.colorScheme.primary
+                                    ? AppTheme.primary
                                     : theme.colorScheme.onSurface
                                         .withOpacity(0.6),
                                 fontWeight: isToday
@@ -128,14 +132,16 @@ class _WeeklyGraphCard extends StatelessWidget {
                             children: [
                               // Track
                               Container(
-                                height: 70,
+                                height: 56,
                                 decoration: BoxDecoration(
                                   color: isToday
-                                      ? theme.colorScheme.primary
+                                      ? AppTheme.primary
                                           .withOpacity(0.08)
                                       : theme.colorScheme.onSurface
-                                          .withOpacity(0.05),
-                                  borderRadius: BorderRadius.circular(8),
+                                          .withOpacity(
+                                          0.04,
+                                        ),
+                                  borderRadius: BorderRadius.circular(10),
                                 ),
                               ),
                               // Fill
@@ -143,24 +149,24 @@ class _WeeklyGraphCard extends StatelessWidget {
                                 duration: Duration(
                                     milliseconds: 300 + (i * 50)),
                                 curve: Curves.easeOut,
-                                height: barHeight.clamp(0, 70),
+                                height: barHeight.clamp(0, 56),
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
                                     begin: Alignment.bottomCenter,
                                     end: Alignment.topCenter,
                                     colors: isToday
                                         ? [
-                                            theme.colorScheme.primary,
-                                            theme.colorScheme.primary
+                                            AppTheme.primary,
+                                            AppTheme.primary
                                                 .withOpacity(0.6),
                                           ]
                                         : [
-                                            theme.colorScheme.secondary,
-                                            theme.colorScheme.secondary
+                                            AppTheme.secondary,
+                                            AppTheme.secondary
                                                 .withOpacity(0.6),
                                           ],
                                   ),
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.circular(10),
                                 ),
                               ),
                             ],
@@ -170,7 +176,7 @@ class _WeeklyGraphCard extends StatelessWidget {
                             label,
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: isToday
-                                  ? theme.colorScheme.primary
+                                  ? AppTheme.primary
                                   : theme.colorScheme.onSurface
                                       .withOpacity(0.6),
                               fontWeight: isToday

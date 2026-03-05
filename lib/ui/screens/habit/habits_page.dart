@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:focusx/ui/screens/habit/habit_card.dart';
 import '../../../models/habit.dart';
 import '../../../utils/webservice.dart';
+import '../../theme/app_theme.dart';
 import '../../widgets/habit_calendar_widget.dart';
 import 'habit_streak_utils.dart';
 
@@ -14,11 +15,16 @@ class HabitsPage extends StatefulWidget {
 
 enum _ViewMode { list, calendar }
 
-class _HabitsPageState extends State<HabitsPage> {
+class _HabitsPageState extends State<HabitsPage>
+    with AutomaticKeepAliveClientMixin {
   _ViewMode _viewMode = _ViewMode.list;
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       body: Column(
         children: [
@@ -86,6 +92,7 @@ class _HabitListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final today = DateTime.now().toIso8601String().substring(0, 10);
     final doneToday =
         habits.where((h) => h.completionDates.contains(today)).length;
@@ -97,10 +104,16 @@ class _HabitListView extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
           child: Container(
             padding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(12),
+              gradient: LinearGradient(
+                colors: [
+                  AppTheme.primary.withOpacity(isDark ? 0.15 : 0.08),
+                  AppTheme.secondary.withOpacity(isDark ? 0.1 : 0.05),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppTheme.primary.withOpacity(0.1)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -115,11 +128,12 @@ class _HabitListView extends StatelessWidget {
                             theme.colorScheme.onSurface.withOpacity(0.6),
                       ),
                     ),
+                    const SizedBox(height: 2),
                     Text(
                       '$doneToday / ${habits.length} habits done',
                       style: theme.textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: theme.colorScheme.primary,
+                        color: AppTheme.primary,
                       ),
                     ),
                   ],
@@ -134,7 +148,10 @@ class _HabitListView extends StatelessWidget {
                           : doneToday / habits.length,
                       minHeight: 8,
                       backgroundColor:
-                          theme.colorScheme.primary.withOpacity(0.15),
+                          AppTheme.primary.withOpacity(0.12),
+                      valueColor: const AlwaysStoppedAnimation(
+                        AppTheme.primary,
+                      ),
                     ),
                   ),
                 ),
@@ -176,14 +193,18 @@ class _HabitCalendarOverview extends StatelessWidget {
                 Row(
                   children: [
                     Container(
-                      width: 36,
-                      height: 36,
+                      width: 38,
+                      height: 38,
                       decoration: BoxDecoration(
-                        color: habitColor.withOpacity(0.15),
-                        shape: BoxShape.circle,
+                        color: habitColor.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                       child:
-                          Icon(Icons.repeat, color: habitColor, size: 18),
+                          Icon(
+                        Icons.repeat_rounded,
+                        color: habitColor,
+                        size: 18,
+                      ),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
@@ -199,7 +220,7 @@ class _HabitCalendarOverview extends StatelessWidget {
                           Row(
                             children: [
                               Icon(
-                                Icons.local_fire_department,
+                                Icons.local_fire_department_rounded,
                                 size: 12,
                                 color: streak > 0
                                     ? Colors.orange
@@ -219,11 +240,21 @@ class _HabitCalendarOverview extends StatelessWidget {
                         ],
                       ),
                     ),
-                    Text(
-                      '${h.completionDates.length} days',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: habitColor,
-                        fontWeight: FontWeight.w600,
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: habitColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '${h.completionDates.length} days',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: habitColor,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ],
@@ -251,16 +282,24 @@ class _EmptyHabits extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.repeat_rounded,
-            size: 64,
-            color: theme.colorScheme.primary.withOpacity(0.3),
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppTheme.primary.withOpacity(0.08),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.repeat_rounded,
+              size: 48,
+              color: AppTheme.primary.withOpacity(0.5),
+            ),
           ),
           const SizedBox(height: 16),
           Text(
             'No habits yet',
             style: theme.textTheme.titleLarge?.copyWith(
               color: theme.colorScheme.onSurface.withOpacity(0.5),
+              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 8),

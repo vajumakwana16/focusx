@@ -9,41 +9,158 @@ class NotificationService {
     tzdata.initializeTimeZones();
 
     const android = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const ios = DarwinInitializationSettings();
+    const ios = DarwinInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    );
 
-    _plugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>()?.requestNotificationsPermission();
+    _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >()
+        ?.requestNotificationsPermission();
 
     await _plugin.initialize(
       const InitializationSettings(android: android, iOS: ios),
     );
+
+    // Create notification channels for Android
+    final androidPlugin = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
+    if (androidPlugin != null) {
+      await androidPlugin.createNotificationChannel(
+        const AndroidNotificationChannel(
+          'tasks',
+          'Task Reminders',
+          description: 'Notifications for task reminders',
+          importance: Importance.high,
+          playSound: true,
+          enableVibration: true,
+        ),
+      );
+      await androidPlugin.createNotificationChannel(
+        const AndroidNotificationChannel(
+          'habits',
+          'Habit Reminders',
+          description: 'Daily notifications for habit reminders',
+          importance: Importance.high,
+          playSound: true,
+          enableVibration: true,
+        ),
+      );
+    }
   }
 
-  static Future<void> schedule({
+  /// Schedule a one-time notification for tasks
+  static Future<void> scheduleTask({
     required int id,
     required String title,
+    required String? description,
     required DateTime dateTime,
   }) async {
+    // Don't schedule if time is in the past
+    if (dateTime.isBefore(DateTime.now())) return;
+
     await _plugin.zonedSchedule(
       id,
+      '📋 Task Reminder',
       title,
-      'Task Reminder',
       tz.TZDateTime.from(dateTime, tz.local),
       const NotificationDetails(
         android: AndroidNotificationDetails(
           'tasks',
           'Task Reminders',
-          importance: Importance.max,
+          importance: Importance.high,
           priority: Priority.high,
+          icon: '@mipmap/ic_launcher',
+          styleInformation: BigTextStyleInformation(''),
+          category: AndroidNotificationCategory.reminder,
+        ),
+        iOS: DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
         ),
       ),
-      androidScheduleMode: AndroidScheduleMode.inexact,
-      // uiLocalNotificationDateInterpretation:
-      // UILocalNotificationDateInterpretation.absoluteTime,
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+    );
+  }
+
+  /// Schedule a daily recurring notification for habits
+  static Future<void> scheduleHabitDaily({
+    required int id,
+    required String title,
+    required TimeOfDayData time,
+  }) async {
+    final now = DateTime.now();
+    var scheduled = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      time.hour,
+      time.minute,
+    );
+
+    // If time has passed today, schedule for tomorrow
+    if (scheduled.isBefore(now)) {
+      scheduled = scheduled.add(const Duration(days: 1));
+    }
+
+    await _plugin.zonedSchedule(
+      id,
+      '🔄 Habit Reminder',
+      'Time to work on: $title',
+      tz.TZDateTime.from(scheduled, tz.local),
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'habits',
+          'Habit Reminders',
+          importance: Importance.high,
+          priority: Priority.high,
+          icon: '@mipmap/ic_launcher',
+          category: AndroidNotificationCategory.reminder,
+        ),
+        iOS: DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
+      ),
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      matchDateTimeComponents: DateTimeComponents.time, // Daily repeat
+    );
+  }
+
+  /// Schedule a one-time notification (backward compatible)
+  static Future<void> schedule({
+    required int id,
+    required String title,
+    required DateTime dateTime,
+  }) async {
+    await scheduleTask(
+      id: id,
+      title: title,
+      description: null,
+      dateTime: dateTime,
     );
   }
 
   static Future<void> cancel(int id) async {
     await _plugin.cancel(id);
   }
+
+  static Future<void> cancelAll() async {
+    await _plugin.cancelAll();
+  }
+}
+
+/// Simple class to pass time data without Flutter dependency
+class TimeOfDayData {
+  final int hour;
+  final int minute;
+
+  const TimeOfDayData({required this.hour, required this.minute});
 }

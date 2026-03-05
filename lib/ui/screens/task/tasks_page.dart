@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:focusx/ui/screens/task/task_card.dart';
 import '../../../models/task.dart';
 import '../../../utils/webservice.dart';
+import '../../theme/app_theme.dart';
 
 class TasksPage extends StatefulWidget {
   const TasksPage({super.key});
@@ -12,11 +13,16 @@ class TasksPage extends StatefulWidget {
 
 enum _FilterMode { all, today, completed, pending }
 
-class _TasksPageState extends State<TasksPage> {
+class _TasksPageState extends State<TasksPage>
+    with AutomaticKeepAliveClientMixin {
   _FilterMode _filter = _FilterMode.all;
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -24,18 +30,40 @@ class _TasksPageState extends State<TasksPage> {
         children: [
           // Filter chips
           SizedBox(
-            height: 48,
+            height: 52,
             child: ListView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               children: _FilterMode.values.map((f) {
+                final isSelected = _filter == f;
                 return Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: FilterChip(
-                    label: Text(_filterLabel(f)),
-                    selected: _filter == f,
+                    label: Text(
+                      _filterLabel(f),
+                      style: TextStyle(
+                        fontWeight: isSelected
+                            ? FontWeight.w600
+                            : FontWeight.w400,
+                        color: isSelected
+                            ? AppTheme.primary
+                            : theme.colorScheme.onSurface.withOpacity(0.7),
+                        fontSize: 13,
+                      ),
+                    ),
+                    selected: isSelected,
                     onSelected: (v) => setState(() => _filter = f),
                     visualDensity: VisualDensity.compact,
+                    selectedColor: AppTheme.primary.withOpacity(0.12),
+                    checkmarkColor: AppTheme.primary,
+                    side: BorderSide(
+                      color: isSelected
+                          ? AppTheme.primary.withOpacity(0.3)
+                          : theme.dividerColor,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 );
               }).toList(),
@@ -68,14 +96,14 @@ class _TasksPageState extends State<TasksPage> {
                     if (pending.isNotEmpty) ...[
                       _SectionLabel(
                         label: 'Pending (${pending.length})',
-                        color: theme.colorScheme.primary,
+                        color: AppTheme.primary,
                       ),
                       ...pending.map((t) => TaskCard(task: t)),
                     ],
                     if (done.isNotEmpty) ...[
                       _SectionLabel(
                         label: 'Completed (${done.length})',
-                        color: Colors.green,
+                        color: AppTheme.secondary,
                       ),
                       ...done.map((t) => TaskCard(task: t)),
                     ],
@@ -128,12 +156,12 @@ class _SectionLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
       child: Row(
         children: [
           Container(
             width: 4,
-            height: 16,
+            height: 18,
             decoration: BoxDecoration(
               color: color,
               borderRadius: BorderRadius.circular(2),
@@ -164,10 +192,17 @@ class _EmptyTasks extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.task_alt_rounded,
-            size: 64,
-            color: theme.colorScheme.primary.withOpacity(0.3),
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppTheme.primary.withOpacity(0.08),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.task_alt_rounded,
+              size: 48,
+              color: AppTheme.primary.withOpacity(0.5),
+            ),
           ),
           const SizedBox(height: 16),
           Text(
@@ -178,6 +213,7 @@ class _EmptyTasks extends StatelessWidget {
                     : 'No tasks yet',
             style: theme.textTheme.titleLarge?.copyWith(
               color: theme.colorScheme.onSurface.withOpacity(0.5),
+              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 8),

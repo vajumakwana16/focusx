@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:focusx/ui/screens/analytics/analytics_page.dart';
-import 'package:focusx/ui/screens/settings_page.dart';
 import 'package:focusx/ui/screens/task/add_edit_task_page.dart';
 import 'package:focusx/ui/screens/task/tasks_page.dart';
 import 'package:provider/provider.dart';
@@ -23,19 +22,18 @@ class Dashboard extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text(getTitles(provider.index))),
       drawer: AppDrawer(),
-      extendBody: true, // 🔥 floating effect
+      extendBody: true,
       body: PageView(
         controller: provider.pageController,
-        physics: const NeverScrollableScrollPhysics(), // controlled by bar
+        physics: const NeverScrollableScrollPhysics(),
         children: const [
           HomePage(),
           TasksPage(),
           HabitsPage(),
           AnalyticsPage(),
-          // SettingsPage(),
         ],
       ),
-      floatingActionButtonLocation: .miniEndFloat,
+      floatingActionButtonLocation: FloatingActionButtonLocation.miniEndFloat,
       floatingActionButton: (provider.index == 1 || provider.index == 2) ?  FloatingActionButton(
         onPressed: () {
           if(provider.index == 1) {

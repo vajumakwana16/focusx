@@ -3,12 +3,22 @@ import 'package:flutter/material.dart';
 import 'package:focusx/ui/screens/google_sign_in_page.dart';
 import 'package:focusx/ui/screens/settings_page.dart';
 import 'package:focusx/utils/extensions.dart';
+import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../provider/haptic_provider.dart';
 import '../../services/auth_service.dart';
 import '../../utils/webservice.dart';
+import '../theme/app_theme.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
+
+  static const _playStoreUrl =
+      'https://play.google.com/store/apps/details?id=com.vm.focusx';
+  static const _devPageUrl =
+      'https://play.google.com/store/apps/dev?id=5929597072015420935';
 
   @override
   Widget build(BuildContext context) {
@@ -61,18 +71,8 @@ class AppDrawer extends StatelessWidget {
                           color: theme.colorScheme.onSurface.withOpacity(0.1),
                         ),
                         _MiniStatCol(
-                          value: '${d['score']}/10',
-                          label: 'Score',
-                          color: theme.colorScheme.secondary,
-                        ),
-                        Container(
-                          height: 30,
-                          width: 1,
-                          color: theme.colorScheme.onSurface.withOpacity(0.1),
-                        ),
-                        _MiniStatCol(
-                          value: d['status'].toString().split(' ').first,
-                          label: 'Status',
+                          value: d['status'].toString().split(' ').last,
+                          label: 'Focus',
                           color: Colors.orange,
                         ),
                       ],
@@ -84,15 +84,78 @@ class AppDrawer extends StatelessWidget {
 
             const Divider(),
 
-            _DrawerItem(
-              icon: Icons.settings_rounded,
-              title: 'Settings',
-              onTap: () {
-                context.back();
-                context.next(const SettingsPage());
+            // // Settings
+            // _DrawerItem(
+            //   icon: Icons.settings_rounded,
+            //   title: 'Settings',
+            //   onTap: () {
+            //     context.back();
+            //     context.next(const SettingsPage());
+            //   },
+            // ),
+
+            // Vibration toggle
+            Consumer<HapticProvider>(
+              builder: (context, haptic, _) {
+                return SwitchListTile(
+                  value: haptic.enabled,
+                  onChanged: (v) => haptic.setEnabled(v),
+                  title: const Text('Vibration'),
+                  secondary: Icon(
+                    haptic.enabled
+                        ? Icons.vibration_rounded
+                        : Icons.smartphone_rounded,
+                    color: theme.colorScheme.onSurface,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                  dense: true,
+                );
               },
             ),
 
+            const Divider(),
+
+            // Share app
+            _DrawerItem(
+              icon: Icons.share_rounded,
+              title: 'Share App',
+              onTap: () {
+                Navigator.pop(context);
+                Share.share(
+                  'Check out FocusX — a productivity app that helps you manage tasks & habits!\n\n$_playStoreUrl',
+                );
+              },
+            ),
+
+            // Rate app
+            _DrawerItem(
+              icon: Icons.star_rounded,
+              title: 'Rate App',
+              onTap: () {
+                Navigator.pop(context);
+                launchUrl(
+                  Uri.parse(_playStoreUrl),
+                  mode: LaunchMode.externalApplication,
+                );
+              },
+            ),
+
+            // More apps
+            _DrawerItem(
+              icon: Icons.apps_rounded,
+              title: 'More Apps',
+              onTap: () {
+                Navigator.pop(context);
+                launchUrl(
+                  Uri.parse(_devPageUrl),
+                  mode: LaunchMode.externalApplication,
+                );
+              },
+            ),
+
+            const Divider(),
+
+            // Sign in / Sign out
             _DrawerItem(
               icon: isGuest ? Icons.login_rounded : Icons.logout_rounded,
               title: isGuest ? 'Sign in' : 'Sign out',
@@ -111,9 +174,25 @@ class AppDrawer extends StatelessWidget {
             const Divider(),
             const SizedBox(height: 8),
             Text(
-              'FocusX v1.0.1',
+              'FocusX v1.0.3',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurface.withOpacity(0.4),
+              ),
+            ),
+            const SizedBox(height: 4),
+            GestureDetector(
+              onTap: () {
+                launchUrl(
+                  Uri.parse(_devPageUrl),
+                  mode: LaunchMode.externalApplication,
+                );
+              },
+              child: Text(
+                'Made with ❤️ by VajuMakwana',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: AppTheme.primary.withOpacity(0.6),
+                  fontSize: 11,
+                ),
               ),
             ),
             const SizedBox(height: 16),

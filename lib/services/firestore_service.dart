@@ -222,9 +222,28 @@ class FirestoreService {
     for (var doc in snapshot.docs) {
       final data = doc.data();
 
-      // Planned today
-      print("${data['dueDate']}  - $todayKey ");
-      if (data['dueDate'].toString().substring(0,10) == todayKey) {
+      final dueDate = (data['dueDate'] ?? '').toString();
+
+      // Parse createdAt — could be a Firestore Timestamp or a String
+      String createdAtKey = '';
+      final rawCreated = data['createdAt'];
+      if (rawCreated is Timestamp) {
+        createdAtKey = _dayKey(rawCreated.toDate());
+      } else if (rawCreated is String && rawCreated.length >= 10) {
+        createdAtKey = rawCreated.substring(0, 10);
+      }
+
+      // Count as today's task if:
+      // 1. dueDate matches today, OR
+      // 2. dueDate is empty/missing and task was created today
+      bool isToday = false;
+      if (dueDate.length >= 10 && dueDate.substring(0, 10) == todayKey) {
+        isToday = true;
+      } else if (dueDate.isEmpty && createdAtKey == todayKey) {
+        isToday = true;
+      }
+
+      if (isToday) {
         plannedToday++;
 
         if (data['isCompleted'] == true) {

@@ -37,9 +37,8 @@ class GoogleSignInPage extends StatelessWidget {
                   color: Colors.white,
                 ),
               ),*/
-              Image.asset('assets/ic_launcher_round.png'),
-
-              // const SizedBox(height: 28),
+             
+              const SizedBox(height: 28),
 
               // 🧠 Title
               Text(
@@ -63,6 +62,13 @@ class GoogleSignInPage extends StatelessWidget {
 
               const SizedBox(height: 48),
 
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.asset('assets/ic_launcher_round.jpeg'),
+              ),
+
+              const SizedBox(height: 28),
+
               // 🔐 Google Sign-In Button
               SizedBox(
                 width: double.infinity,
@@ -83,11 +89,7 @@ class GoogleSignInPage extends StatelessWidget {
                     ),
                   ),
                   onPressed: () async {
-                    final user = await AuthService().signInWithGoogle();
-
-                    if (user != null && context.mounted) {
-                      Navigator.pushReplacementNamed(context, '/');
-                    }
+                    await AuthService().signInWithGoogle();
                   },
                 ),
               ),
@@ -95,18 +97,29 @@ class GoogleSignInPage extends StatelessWidget {
               const SizedBox(height: 10),
 
               // 👤 Continue as Guest
-              TextButton(
-                onPressed: () async {
-                  final user = await AuthService().signInAsGuest();
-                  if (user != null && context.mounted) {
-                    Navigator.pushReplacementNamed(context, '/home');
-                  }
-                },
-                child: const Text(
-                  'Continue as Guest',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton.icon(
+                  icon: Icon(Icons.person_2_rounded),
+                  label: const Text(
+                    'Continue as Guest',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: theme.colorScheme.surface,
+                    foregroundColor: theme.colorScheme.onSurface,
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      side: BorderSide(color: theme.dividerColor),
+                    ),
+                  ),
+                  onPressed: () async {
+                    await AuthService().signInAsGuest();
+                  },
                 ),
-              ),
+              ), 
 
               const SizedBox(height: 20),
 

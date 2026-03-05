@@ -41,6 +41,7 @@ class _HabitDetailPageState extends State<HabitDetailPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final habitColor = Color(_habit.color);
     final streak = _habit.frequency == 'Daily'
         ? HabitStreakUtils.calculateDailyStreak(_habit.completionDates)
@@ -62,7 +63,6 @@ class _HabitDetailPageState extends State<HabitDetailPage> {
                   builder: (_) => AddEditHabitPage(habit: _habit),
                 ),
               );
-              // Refresh page after edit - pop back so parent rebuilds
               if (mounted) {
                 Navigator.pop(context);
               }
@@ -75,7 +75,7 @@ class _HabitDetailPageState extends State<HabitDetailPage> {
         children: [
           // Header card
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(22),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
@@ -86,6 +86,13 @@ class _HabitDetailPageState extends State<HabitDetailPage> {
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: habitColor.withOpacity(0.3),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
+                ),
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -96,7 +103,7 @@ class _HabitDetailPageState extends State<HabitDetailPage> {
                       backgroundColor: Colors.white.withOpacity(0.2),
                       radius: 24,
                       child: const Icon(
-                        Icons.repeat,
+                        Icons.repeat_rounded,
                         color: Colors.white,
                         size: 24,
                       ),
@@ -132,17 +139,17 @@ class _HabitDetailPageState extends State<HabitDetailPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     _StatBadge(
-                      icon: Icons.local_fire_department,
+                      icon: Icons.local_fire_department_rounded,
                       value: '$streak',
                       label: 'Day Streak',
                     ),
                     _StatBadge(
-                      icon: Icons.check_circle_outline,
+                      icon: Icons.check_circle_outline_rounded,
                       value: '$totalCompleted',
                       label: 'Total Done',
                     ),
                     _StatBadge(
-                      icon: Icons.repeat,
+                      icon: Icons.repeat_rounded,
                       value: _habit.frequency,
                       label: 'Frequency',
                     ),
@@ -155,10 +162,22 @@ class _HabitDetailPageState extends State<HabitDetailPage> {
           const SizedBox(height: 16),
 
           // Today toggle
-          Card(
+          Container(
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: isDark
+                    ? Colors.white.withOpacity(0.06)
+                    : Colors.black.withOpacity(0.04),
+              ),
+            ),
             child: ListTile(
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18),
+              ),
               leading: AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
                 width: 44,
@@ -167,10 +186,10 @@ class _HabitDetailPageState extends State<HabitDetailPage> {
                   color: doneToday
                       ? habitColor
                       : habitColor.withOpacity(0.1),
-                  shape: BoxShape.circle,
+                  borderRadius: BorderRadius.circular(14),
                 ),
                 child: Icon(
-                  doneToday ? Icons.check : Icons.circle_outlined,
+                  doneToday ? Icons.check_rounded : Icons.circle_outlined,
                   color: doneToday ? Colors.white : habitColor,
                 ),
               ),
@@ -200,7 +219,7 @@ class _HabitDetailPageState extends State<HabitDetailPage> {
           // Calendar view
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(18),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -234,7 +253,7 @@ class _HabitDetailPageState extends State<HabitDetailPage> {
           // Streak visualization - last 30 days
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(18),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -260,7 +279,7 @@ class _HabitDetailPageState extends State<HabitDetailPage> {
           await _toggleDate(today, !doneToday);
         },
         backgroundColor: doneToday ? Colors.grey : habitColor,
-        icon: Icon(doneToday ? Icons.close : Icons.check),
+        icon: Icon(doneToday ? Icons.close_rounded : Icons.check_rounded),
         label: Text(doneToday ? 'Undo Today' : 'Complete Today'),
       ),
     );
@@ -315,7 +334,6 @@ class _Last30DaysGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final now = DateTime.now();
     final days = List.generate(30, (i) => now.subtract(Duration(days: 29 - i)));
 
@@ -346,7 +364,7 @@ class _Last30DaysGrid extends StatelessWidget {
               color: isCompleted
                   ? habitColor
                   : habitColor.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(5),
               border: isToday
                   ? Border.all(color: habitColor, width: 1.5)
                   : null,

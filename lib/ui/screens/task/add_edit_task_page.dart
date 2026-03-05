@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:focusx/utils/webservice.dart';
-import 'package:focusx/utils/webservice.dart';
-import 'package:focusx/utils/webservice.dart';
 import '../../../models/task.dart';
-import '../../../services/firestore_service.dart';
 import '../../../services/haptic_service.dart';
 import '../../../services/notification_service.dart';
 import 'task_form.dart';
@@ -51,11 +48,25 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
     reminderEnabled = (t?.notificationId ?? 0) != 0;
   }
 
+  @override
+  void dispose() {
+    title.dispose();
+    description.dispose();
+    super.dispose();
+  }
+
   Future<void> _saveTask() async {
     if (!_formKey.currentState!.validate()) return;
 
     final notificationId =
-    reminderEnabled ? DateTime.now().millisecondsSinceEpoch ~/ 1000 : 0;
+        reminderEnabled
+        ? DateTime.now().millisecondsSinceEpoch ~/ 1000
+        : 0;
+
+    // Cancel previous notification if editing
+    if (widget.task != null && widget.task!.notificationId != 0) {
+      await NotificationService.cancel(widget.task!.notificationId);
+    }
 
     final task = Task(
       id: widget.task?.id,
@@ -74,7 +85,7 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
       timerDuration: 0,
       timeSpent: 0,
       remainingTime: 0,
-      completedAt: null
+      completedAt: widget.task?.completedAt,
     );
 
     if (widget.task == null) {
@@ -83,6 +94,7 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
       await Webservice.firebaseService.updateTask(task);
     }
 
+    // Schedule notification
     if (reminderEnabled && selectedDate != null && selectedTime != null) {
       final dateTime = DateTime(
         selectedDate!.year,
@@ -92,9 +104,10 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
         selectedTime!.minute,
       );
 
-      await NotificationService.schedule(
+      await NotificationService.scheduleTask(
         id: notificationId,
         title: title.text,
+        description: description.text.isNotEmpty ? description.text : null,
         dateTime: dateTime,
       );
     }
@@ -112,11 +125,39 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
         actions: [
           if (isEdit)
             IconButton(
-              icon: const Icon(Icons.delete_outline),
+              icon: const Icon(Icons.delete_outline_rounded),
               onPressed: () async {
                 HapticService.heavy();
-                await Webservice.firebaseService.deleteTask(widget.task!.id!);
-                if (mounted) Navigator.pop(context);
+                final confirm = await showDialog<bool>(
+                  context: context,
+                  builder: (_) => AlertDialog(
+                    title: const Text('Delete task?'),
+                    content: const Text('This action cannot be undone.'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: const Text('Cancel'),
+                      ),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                        ),
+                        onPressed: () => Navigator.pop(context, true),
+                        child: const Text('Delete'),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirm == true) {
+                  // Cancel notification before deleting
+                  if (widget.task!.notificationId != 0) {
+                    await NotificationService.cancel(
+                      widget.task!.notificationId,
+                    );
+                  }
+                  await Webservice.firebaseService.deleteTask(widget.task!.id!);
+                  if (mounted) Navigator.pop(context);
+                }
               },
             ),
         ],
@@ -141,8 +182,8 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _saveTask,
-        icon: const Icon(Icons.check),
-        label: const Text('Save Task'),
+        icon: const Icon(Icons.check_rounded),
+        label: Text(isEdit ? 'Update Task' : 'Save Task'),
       ),
     );
   }

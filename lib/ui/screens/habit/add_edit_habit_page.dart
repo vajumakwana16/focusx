@@ -22,7 +22,7 @@ class _AddEditHabitPageState extends State<AddEditHabitPage> {
   String frequency = 'Daily';
   TimeOfDay? reminderTime;
   bool reminderEnabled = false;
-  int color = 0xFF5B7CFA;
+  int color = 0xFF6C63FF;
 
   @override
   void initState() {
@@ -32,7 +32,7 @@ class _AddEditHabitPageState extends State<AddEditHabitPage> {
     title = TextEditingController(text: h?.title ?? '');
     description = TextEditingController(text: h?.description ?? '');
     frequency = h?.frequency ?? 'Daily';
-    color = h?.color ?? 0xFF5B7CFA;
+    color = h?.color ?? 0xFF6C63FF;
     reminderEnabled = h?.reminderTime.isNotEmpty == true;
 
     if (h?.reminderTime.isNotEmpty == true) {
@@ -57,6 +57,11 @@ class _AddEditHabitPageState extends State<AddEditHabitPage> {
     final notificationId =
         reminderEnabled ? DateTime.now().millisecondsSinceEpoch ~/ 1000 : 0;
 
+    // Cancel previous notification if editing
+    if (widget.habit != null && widget.habit!.notificationId != 0) {
+      await NotificationService.cancel(widget.habit!.notificationId);
+    }
+
     final habit = Habit(
       id: widget.habit?.id,
       title: title.text.trim(),
@@ -76,22 +81,15 @@ class _AddEditHabitPageState extends State<AddEditHabitPage> {
         ? await Webservice.firebaseService.addHabit(habit)
         : await Webservice.firebaseService.updateHabit(habit);
 
+    // Schedule daily recurring notification for habit
     if (reminderEnabled && reminderTime != null) {
-      final now = DateTime.now();
-      final scheduled = DateTime(
-        now.year,
-        now.month,
-        now.day,
-        reminderTime!.hour,
-        reminderTime!.minute,
-      );
-
-      await NotificationService.schedule(
+      await NotificationService.scheduleHabitDaily(
         id: notificationId,
-        title: habit.title,
-        dateTime: scheduled.isAfter(now)
-            ? scheduled
-            : scheduled.add(const Duration(days: 1)),
+        title: title.text.trim(),
+        time: TimeOfDayData(
+          hour: reminderTime!.hour,
+          minute: reminderTime!.minute,
+        ),
       );
     }
 
@@ -108,7 +106,7 @@ class _AddEditHabitPageState extends State<AddEditHabitPage> {
         actions: [
           if (isEdit)
             IconButton(
-              icon: const Icon(Icons.delete_outline),
+              icon: const Icon(Icons.delete_outline_rounded),
               onPressed: () async {
                 HapticService.heavy();
                 final confirm = await showDialog<bool>(
@@ -132,6 +130,12 @@ class _AddEditHabitPageState extends State<AddEditHabitPage> {
                   ),
                 );
                 if (confirm == true && mounted) {
+                  // Cancel notification before deleting
+                  if (widget.habit!.notificationId != 0) {
+                    await NotificationService.cancel(
+                      widget.habit!.notificationId,
+                    );
+                  }
                   await Webservice.firebaseService
                       .deleteHabit(widget.habit!.id!);
                   Navigator.pop(context);
@@ -142,7 +146,7 @@ class _AddEditHabitPageState extends State<AddEditHabitPage> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _saveHabit,
-        icon: const Icon(Icons.check),
+        icon: const Icon(Icons.check_rounded),
         label: Text(isEdit ? 'Update Habit' : 'Save Habit'),
       ),
       body: Padding(
