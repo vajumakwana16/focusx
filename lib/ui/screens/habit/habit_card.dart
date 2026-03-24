@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../models/habit.dart';
 import '../../../services/haptic_service.dart';
+import '../../../services/widget_service.dart';
 import '../../../utils/webservice.dart';
 import 'habit_detail_page.dart';
 import 'habit_streak_utils.dart';
@@ -174,6 +176,7 @@ class HabitCard extends StatelessWidget {
                   }
                   await Webservice.firebaseService
                       .updateHabit(h.copyWith(completionDates: updatedDates));
+                  unawaited(WidgetService.refresh());
                 },
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 300),

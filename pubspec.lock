@@ -246,6 +246,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.3"
+  flutter_timezone:
+    dependency: "direct main"
+    description:
+      name: flutter_timezone
+      sha256: "91c4964dbe9a9697fd4bf4fc00c0de2e51e8c8e7a33ebde5fbfc03af0cf0a8c9"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.4"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -312,6 +320,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.12.4+4"
+  home_widget:
+    dependency: "direct main"
+    description:
+      name: home_widget
+      sha256: "9fcd2b77cf7a02f8ae2440b16e2b2dbb2e90c97aa6de52db13f06c8dd4dc60a0"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.6.0"
   hooks:
     dependency: transitive
     description:

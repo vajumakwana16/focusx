@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:focusx/utils/extensions.dart';
 import '../../../models/task.dart';
 import '../../../services/haptic_service.dart';
+import '../../../services/widget_service.dart';
 import '../../../utils/webservice.dart';
 import '../../theme/app_theme.dart';
 import 'add_edit_task_page.dart';
@@ -179,6 +181,7 @@ class TaskCard extends StatelessWidget {
                               completedAt: DateTime.now().toIso8601String(),
                             ),
                           );
+                          unawaited(WidgetService.refresh());
                         },
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 300),
