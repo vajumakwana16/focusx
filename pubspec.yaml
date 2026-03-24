@@ -42,6 +42,8 @@ dependencies:
   provider: ^6.1.2
   flutter_local_notifications: ^19.5.0 #^17.2.2
   timezone: #^0.9.4
+  flutter_timezone: ^1.0.4
+  home_widget: ^0.6.0
   in_app_update: ^4.2.5
   interval_time_picker: ^4.0.0+12
   share_plus: ^10.0.0

@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:focusx/utils/webservice.dart';
 import '../../../models/habit.dart';
 import '../../../services/haptic_service.dart';
 import '../../../services/notification_service.dart';
+import '../../../services/widget_service.dart';
 import 'habit_form.dart';
 
 class AddEditHabitPage extends StatefulWidget {
@@ -68,7 +70,7 @@ class _AddEditHabitPageState extends State<AddEditHabitPage> {
       description: description.text.trim(),
       frequency: frequency,
       reminderTime: reminderTime != null
-          ? '${reminderTime!.hour}:${reminderTime!.minute}'
+          ? '${reminderTime!.hour.toString().padLeft(2, '0')}:${reminderTime!.minute.toString().padLeft(2, '0')}'
           : '',
       startDate: widget.habit?.startDate ??
           DateTime.now().toIso8601String(),
@@ -81,17 +83,32 @@ class _AddEditHabitPageState extends State<AddEditHabitPage> {
         ? await Webservice.firebaseService.addHabit(habit)
         : await Webservice.firebaseService.updateHabit(habit);
 
-    // Schedule daily recurring notification for habit
+    // Schedule notification based on frequency
     if (reminderEnabled && reminderTime != null) {
-      await NotificationService.scheduleHabitDaily(
-        id: notificationId,
-        title: title.text.trim(),
-        time: TimeOfDayData(
-          hour: reminderTime!.hour,
-          minute: reminderTime!.minute,
-        ),
+      final timeData = TimeOfDayData(
+        hour: reminderTime!.hour,
+        minute: reminderTime!.minute,
       );
+      if (frequency.toLowerCase() == 'weekly') {
+        // Fire on the same weekday as the habit's start date
+        final startWeekday = DateTime.parse(habit.startDate).weekday;
+        await NotificationService.scheduleHabitWeekly(
+          id: notificationId,
+          title: title.text.trim(),
+          time: timeData,
+          weekday: startWeekday,
+        );
+      } else {
+        await NotificationService.scheduleHabitDaily(
+          id: notificationId,
+          title: title.text.trim(),
+          time: timeData,
+        );
+      }
     }
+
+    // Refresh the home-screen widget
+    unawaited(WidgetService.refresh());
 
     if (mounted) Navigator.pop(context);
   }
@@ -138,6 +155,7 @@ class _AddEditHabitPageState extends State<AddEditHabitPage> {
                   }
                   await Webservice.firebaseService
                       .deleteHabit(widget.habit!.id!);
+                  unawaited(WidgetService.refresh());
                   Navigator.pop(context);
                 }
               },

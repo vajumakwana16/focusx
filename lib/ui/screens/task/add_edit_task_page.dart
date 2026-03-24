@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:focusx/utils/webservice.dart';
 import '../../../models/task.dart';
 import '../../../services/haptic_service.dart';
 import '../../../services/notification_service.dart';
+import '../../../services/widget_service.dart';
 import 'task_form.dart';
 
 class AddEditTaskPage extends StatefulWidget {
@@ -74,7 +76,7 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
       description: description.text.trim(),
       dueDate: selectedDate?.toIso8601String() ?? '',
       dueTime: selectedTime != null
-          ? '${selectedTime!.hour}:${selectedTime!.minute}'
+          ? '${selectedTime!.hour.toString().padLeft(2, '0')}:${selectedTime!.minute.toString().padLeft(2, '0')}'
           : '',
       priority: priority,
       category: category,
@@ -111,6 +113,9 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
         dateTime: dateTime,
       );
     }
+
+    // Refresh the home-screen widget
+    unawaited(WidgetService.refresh());
 
     if (mounted) Navigator.pop(context);
   }
@@ -156,6 +161,7 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                     );
                   }
                   await Webservice.firebaseService.deleteTask(widget.task!.id!);
+                  unawaited(WidgetService.refresh());
                   if (mounted) Navigator.pop(context);
                 }
               },

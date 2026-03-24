@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../models/habit.dart';
 import '../../../services/haptic_service.dart';
+import '../../../services/widget_service.dart';
 import '../../../utils/webservice.dart';
 import '../../widgets/habit_calendar_widget.dart';
 import 'add_edit_habit_page.dart';
@@ -36,6 +38,7 @@ class _HabitDetailPageState extends State<HabitDetailPage> {
       setState(() => _habit = updatedHabit);
     }
     HapticService.light();
+    unawaited(WidgetService.refresh());
   }
 
   @override
