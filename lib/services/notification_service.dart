@@ -10,7 +10,7 @@ class NotificationService {
     tzdata.initializeTimeZones();
 
     // Set the correct local timezone so scheduled times are accurate
-    final String localTimezone = await FlutterTimezone.getLocalTimezone();
+    final String localTimezone = await FlutterTimezone.getLocalTimezone().then((tz) => tz.identifier);
     tz.setLocalLocation(tz.getLocation(localTimezone));
 
     const android = AndroidInitializationSettings('@mipmap/ic_launcher');
